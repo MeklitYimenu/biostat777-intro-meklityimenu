@@ -2,7 +2,7 @@
 title: "Meklit Yimenu"
 ---
 
-Welcome!
+## Welcome!
 
 My name is Meklit Yimenu. I am a second-year Biostatistics doctoral student. Outside of work, my hobbies include pottery and jewelery making.
 ```{r}
