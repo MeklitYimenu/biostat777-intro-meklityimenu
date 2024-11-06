@@ -1,10 +1,9 @@
 ---
-title: "Meklit Yimenu"
+title: "Welcome!"
 ---
 
-## Welcome!
 
-My name is Meklit Yimenu. I am a second-year Biostatistics doctoral student. Outside of work, my hobbies include pottery and jewelery making.
+My name is Meklit Yimenu, and I am currently a second-year doctoral student. In my free time, I enjoy pursuing hobbies such as pottery and jewelry making.
 ```{r}
 #| label: setup
 #| echo: false
