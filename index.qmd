@@ -2,10 +2,22 @@
 title: "Meklit Yimenu"
 ---
 
-This is a Quarto website.
+Welcome!
 
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
-
+My name is Meklit Yimenu. I am a second-year Biostatistics doctoral student. Outside of work, my hobbies include pottery and jewelery making.
 ```{r}
-1 + 1
+#| label: setup
+#| echo: false
+library(grid)
+library(jpeg)
+library(gridExtra)
+fig1 <- rasterGrob(readJPEG('images/IMG_6902.JPG'),interpolate = T)
+fig2 <- rasterGrob(readJPEG('images/IMG_6903.JPG'),interpolate = T)
+fig3 <- rasterGrob(readJPEG('images/IMG_6904.JPG'),interpolate = T)
+fig4 <- rasterGrob(readJPEG('images/IMG_6905.JPG'),interpolate = T)
+fig5 <- rasterGrob(readJPEG('images/IMG_6907.JPG'),interpolate = T)
+fig6 <- rasterGrob(readJPEG('images/IMG_6908.JPG'),interpolate = T)
+fig7 <- rasterGrob(readJPEG('images/IMG_6909.JPG'),interpolate = T)
+fig8 <- rasterGrob(readJPEG('images/IMG_6910.JPG'),interpolate = T)
+grid.arrange(fig1,fig2,fig3,fig4,fig5,fig6,fig7,fig8, ncol=4)
 ```
