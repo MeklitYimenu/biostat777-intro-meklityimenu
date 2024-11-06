@@ -2,7 +2,7 @@ project:
   type: website
 
 website:
-  title: "biostat777-intro-meklityimenu"
+  title: "Meklit Yimenu"
   navbar:
     left:
       - href: index.qmd
@@ -12,7 +12,10 @@ website:
 format:
   html:
     theme: minty
-    fontsize: 1.1em
+    fontsize: 1.6em
+    mainfont: serif
+    headfont: serif
+    linestretch: 1.7
     css: styles.css
     toc: true
 
