@@ -1,3 +1,6 @@
 ---
 title: "About"
 ---
+My name is Meklit Yimenu, and I am originally from Addis Ababa, Ethiopia. I am currently in my second year as a PhD student in Biostatistics at the Johns Hopkins School of Public Health. My research focuses on statistical genomics, a field I became interseted in due to my background in Biochemistry and Molecular Biology. During my undergraduate studies, I was introduced to various -omics datasets and  data collection technologies, which sparked my interest in this area.
+
+Outside of academics, I enjoy a variety of creative hobbies, particularly pottery, which I’ve been practicing on and off since high school. I also love thrifting, reading, and watching classic films.
