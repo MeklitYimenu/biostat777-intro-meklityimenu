@@ -1,0 +1,380 @@
+---
+title: "Model for Stroke Prediction"
+author: 'Meklit Yimenu'
+bibliography: biostat777-intro.bib
+reference-location: margin
+citation-location: margin
+---
+
+## Introduction
+
+In 2021, stroke was the third leading cause of death worldwide, accounting for 10.2% of all reported deaths[@noauthor_leading_nodate;@noauthor_top_nodate]. Additionally, the number of stroke diagnoses has also been steadily rising[@noauthor_stroke_nodate]. In light of this, a predictive model that incorporates patient characteristics and other risk factors could be highly beneficial in clinical practice. Such a model would allow healthcare providers to identify high risk individuals, facilitating the implementation of early and targeted preventive measures. Moreover, the model could also serve as a tool to evaluate the effectiveness of preventive measures in reducing stroke incidence among high-risk populations.
+
+## Objectives
+
+The objective of this data analysis is to identify key patient characteristics and develop a stroke prediction model using these factors.
+
+## Data Set
+
+The dataset used in this analysis was obtained from Kaggle [@noauthor_stroke_nodate]and includes eleven patient characteristics for a variety of individuals.
+
+### Data Exploration
+
+```{r}
+#| label: setup
+#| echo: false
+#| message: false
+#| warning: false
+library(tidymodels)
+library(skimr)
+library(Metrics)
+library(tidyverse)
+library(glmnet)
+library(corrplot)
+library(randomForest)
+library(naivebayes)
+library(class)
+library(caret)
+library(e1071)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+# Loading the data
+df <- read.csv("Data/healthcare-dataset-stroke-data.csv", header = TRUE, sep = ",", fill = TRUE)
+dim(df)
+```
+
+The data set contains 5,110 observations and 12 variables.
+
+#### Data Dictionary
+
+```{r}
+#| label: setup
+#| echo: false
+#| message: false
+#| warning: false
+knitr::include_graphics('images/Screenshot.png')
+```
+
+:::{.callout-tip}
+A detailed data dictionary is available at the data source.[@noauthor_stroke_nodate]
+:::
+
+```{r}
+glimpse(df)
+```
+
+The dataset includes eleven patient characteristics. According to the data dictionary, a value of `1` for the `stroke` variable indicates that the patient has had a stroke, while a value of `0` indicates that the patient has not had a stroke. The `id` variable is a unique patient identifier and, therefore, is not relevant to the analysis.
+
+```{r}
+#| message: false
+#| warning: false
+# dropping the id variable
+df <- df %>% select(-1)
+```
+
+The `bmi` variable contains missing (null) values and is stored as a character vector rather than a numerical one.
+
+```{r}
+#| message: false
+#| warning: false
+# changing bmi to numeric 
+df$bmi <- as.numeric(df$bmi)
+# checking for null values 
+colSums(is.na(df))
+```
+
+The `bmi` variable contains 201 missing values, meaning BMI information is unavailable for 201 of the 5,110 patients. Therefore, we will choose to drop the rows with missing BMI values instead. 
+
+
+::: {.column-margin} 
+While one option is to impute the missing values with the average BMI, previous research has shown that factors such as gender and other patient characteristics can influence BMI[@noauthor_factors_nodate; @noauthor_about_nodate]. Therefore, for the purposes of our analysis, it is better to exclude the missing values, especially since doing so would not significantly affect our sample size. 
+:::
+
+```{r}
+# dropping rows with NA values 
+df <- df %>% drop_na()
+```
+
+#### Exploring some variables in greater detail.
+
+```{r}
+# looking at the gender varaible
+df %>% count(gender)
+```
+
+::: callout-note
+The data is imbalanced with respect to gender, which could affect our model, as there may be more female stroke patients simply due to the higher number of female patients in the dataset.
+:::
+
+The data is imbalanced with respect to gender. For the purpose of this analysis, we will drop the single row labeled as `other`.
+
+```{r}
+df <- df %>% filter(gender!= 'Other')
+# distribution of stroke based on gender
+ggplot(df, aes(gender, fill = as.character(stroke))) +
+  geom_bar(position = 'fill') +
+  labs(fill = "Stroke",
+       title = "Figure 1A : Stroke Incidence by Gender") + 
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line = element_line(color = "black")) +
+  scale_fill_brewer(palette = 'Accent', labels = c('0' = 'No', '1' = 'Yes'))
+
+```
+
+*Figure 1A* above indicates that a slightly higher percentage of male patients in the dataset have had a stroke compared to females.
+
+```{r}
+# looking at the age variable
+summary(df$age)
+```
+
+```{r}
+# distribution of stroke based on age
+df_stroke <- df %>% filter(stroke == '1') # data set containing only stroke patients 
+ggplot(df_stroke, aes(age))+
+  geom_histogram(color = 'darkblue',fill='lightblue') +
+  labs(title = "Figure 1B : Stroke Incidence by Age",
+       x= 'Age') + 
+  facet_wrap(~gender) +
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line = element_line(color = "black"))
+
+```
+
+*Figure 1B* shows that the incidence of stroke increases with age. Notably, there are female stroke patients younger than 40, while there are none among the male patients in the dataset.
+
+```{r}
+# looking at hypertension
+summary(df$hypertension)
+```
+
+According to the data dictionary (\[link\]), a value of `1` indicates that the patient has hypertension, while a value of `0` indicates that the patient does not have hypertension.
+
+```{r}
+# relationship between stroke and hypertension
+ggplot(df, aes(as.factor(hypertension), fill = as.character(stroke))) +
+  geom_bar(position = 'fill') +
+  labs(fill = "Stroke",
+       title = "Figure 1C : Stroke Incidence by Hypertension Status",
+       x= 'Hypertension') + 
+  facet_wrap(~gender) +
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line = element_line(color = "black")) +
+  scale_fill_brewer(palette = 'Accent', labels = c('0' = 'No', '1' = 'Yes')) +
+  scale_x_discrete(labels = c('0' = 'No', '1' = 'Yes'))
+```
+
+In both genders, having hypertension seems to be correlated with stroke incidence.
+
+```{r}
+# relationship between stroke and heart disease
+ggplot(df, aes(as.factor(heart_disease), fill = as.character(stroke))) +
+  geom_bar(position = 'fill') +
+  labs(fill = "Stroke",
+       title = "Figure 1D : Stroke Incidence by Heart Disease Status",
+       x="Heart Disease") + 
+  facet_wrap(~gender) +
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line = element_line(color = "black")) +
+  scale_fill_brewer(palette = 'Accent', labels = c('0' = 'No', '1' = 'Yes')) +
+  scale_x_discrete(labels = c('0' = 'No', '1' = 'Yes'))
+```
+
+In both genders, having either hypertension or heart disease appears to be correlated with stroke incidence(*Figures 1C & 1D*)
+
+```{r}
+# looking at average glucose
+summary(df$avg_glucose_level)
+```
+
+```{r}
+# relationship of stroke incidence and blood glucose level 
+ggplot(df, aes(as.factor(stroke),avg_glucose_level, fill = as.factor(stroke) )) + 
+  geom_boxplot(color = 'darkgreen') +
+  facet_wrap(~gender) +
+  labs(title = "Figure 1E: Stroke Incidence by Glucose Level",
+       x="Stroke",
+       y ="Average Glucose Level") +
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        legend.position = 'none',
+        axis.line = element_line(color = "black")) +
+  scale_x_discrete(labels = c('0' = 'No', '1' = 'Yes')) +
+   scale_fill_brewer(palette = 'Accent')
+  
+```
+
+As depicted in `Figure 1E`, an increase in blood glucose level may be associated with a higher incidence of stroke in both genders. Notably, the distribution of average glucose levels is more spread out in stroke patients, and there are multiple extreme outliers among patients who have not had a stroke.
+
+#### Correlation Matrix
+
+Finally, we we look at the correlation among all the varables in the dataset.
+
+```{r}
+#datatype of each column
+str(df)
+```
+
+```{r}
+# changing stroke to numeric
+df <- df %>%
+  mutate(stroke = as.numeric(stroke))
+# normalizing numerical varaiables
+df <- df %>% 
+  mutate(age= rescale(age, to =0:1),
+         avg_glucose_level= rescale(avg_glucose_level,to =0:1),
+         bmi = rescale(bmi, to=0:1))
+# changing categorical variables to numeric
+var <- c('gender','ever_married','work_type','Residence_type','smoking_status')
+df <- df %>%
+  mutate_if(is.character, as.factor)
+# function to create new numerical columns from the levels of the catgorical varaibles 
+f <- function(x) {
+  for (x in var) {
+    df <<- df %>%
+      mutate(dummy =1) %>%
+      spread(key = x, value = dummy, fill=0)
+  }
+}
+f()
+```
+
+```{r}
+# Correlation
+corr <- df%>%cor(method = 'pearson')
+corr[,'stroke']
+```
+
+```{r}
+# correlation plot
+corrplot(corr, method = 'number', number.cex = 0.5,tl.cex = 0.5, tl.col = 'black',number.digits = 1)
+```
+
+As shown by the correlation values and plot above, age, hypertension, heart disease, and glucose levels appear to be correlated with stroke incidence among the other patient characteristics. However, all variables show only weak correlation with stroke incidence, which is not surprising given that the dataset primarily consists of patients who have not had a stroke
+
+```{r}
+df %>% count(stroke)
+```
+
+::: callout-note
+The weak correlation between stroke incidence and the patient characteristics in the dataset is not surprising, as the dataset primarily consists of patients who have not had a stroke.
+:::
+
+## Prediction Model
+
+Since predicting stroke incidence is a classification problem, models developed using KNN, SVM, naive bayes will be evaluated to identify the best-performing model.
+
+```{r}
+# spliting the data into 80% train and 20% test sets
+set.seed(3333)
+sp <- initial_split(df,prop = 0.8)
+train <- training(sp)
+test <- testing(sp)
+```
+
+### KNN Model
+
+```{r}
+train$stroke <- as.factor(train$stroke)
+test$stroke <- as.factor(test$stroke)
+# finding the best model parameter
+tune_k <- train(stroke~.,
+                  data = train,
+                  method = 'knn',
+                  trControl = trainControl(method = 'cv'),
+                  tuneGrid = data.frame(k=c(1:30)))
+# fitting the training set 
+colnames(train) <- make.names(colnames(train))
+colnames(test) <- make.names(colnames(test))
+model_knn <- knn3(stroke~., 
+                  data = train, 
+                  k = tune_k$bestTune$k)
+# fitting the model on testing set
+predict_knn <- predict(model_knn,test, type= 'class')
+# model performance evaluation
+# confusion matrix 
+confusionMatrix(predict_knn,test$stroke)
+```
+
+The accuracy of the KNN model's predictions on the testing set is 95.4%.
+
+### SVM
+
+```{r}
+# fitting training data
+model_svm <- svm(stroke~.,data=train, kernel='linear',cost =10, cross=10, scale=FALSE)
+# fitting testing set 
+predict_svm <- predict(model_svm, test)
+# evaluating model performance 
+# Confusion matrix 
+cmatric_svm <- table(test$stroke,predict_svm)
+cmatric_svm
+```
+
+```{r}
+# model accuracy
+accuracy_svm <- sum(diag(cmatric_svm)) / sum(cmatric_svm)
+accuracy_svm
+```
+
+The model accuracy is similar to that of the KNN model.
+
+### Naive Bayes classfication
+
+```{r}
+#| message: false
+#| warning: false
+#fitting model to the training set
+model_nb <- naive_bayes(stroke ~., data= train, usekernel = T)
+#fitting model to the test set
+predict_nb <- predict(model_nb, test)
+# evaluating model performance 
+# Confusion matrix 
+cmatric_nb <- table(test$stroke,predict_nb)
+cmatric_nb
+```
+
+```{r}
+# model accuracy
+accuracy_nb <- sum(diag(cmatric_nb)) / sum(cmatric_nb)
+accuracy_nb 
+```
+
+Again, the accuracy of the model is similar to that of the previous two models.
+
+::: callout-note
+## Model Selection
+
+All three models have similarly high accuracy, so any of them can be selected as our prediction method.
+:::
+
+### Model Selection
+
+## Conclusion
