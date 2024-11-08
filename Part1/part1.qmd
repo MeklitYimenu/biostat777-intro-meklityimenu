@@ -1,0 +1,6 @@
+
+#### What is your goal?
+
+My long-term goal as a scientist is to contribute to the understanding of the genetic and epigenetic factors that cause disease by using statistical and computational methods to analyze large, complex genomic datasets. Additionally, I also aim to integrate various -omic, clinical, and environmental data to develop a more comprehensive understanding of how genetic variation influences disease susceptibility and progression. 
+
+An equally important long term goal is the inclusion of diverse populations in genetic and genomic studies. Historically, many genomic studies have been biased toward populations of European descent. This creates gaps in our understanding of how genetic variation contributes to disease in under-represented groups. Therefore, my goal is to help expand genomic research by incorporating data from diverse populations and ensure that my findings are applicable to individuals from all genetic backgrounds. 
