@@ -52,7 +52,6 @@ The data set contains 5,110 observations and 12 variables.
 #### Data Dictionary
 
 ```{r}
-#| label: setup
 #| echo: false
 #| message: false
 #| warning: false
