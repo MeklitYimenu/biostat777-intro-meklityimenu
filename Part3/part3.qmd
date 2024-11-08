@@ -1,0 +1,77 @@
+##### Question 1
+
+```{bash}
+# downloading the data 
+wget https://raw.githubusercontent.com/stephaniehicks/jhustatprogramming2024/refs/heads/main/projects/01-project/students.csv
+```
+
+##### Question 2
+
+```{bash}
+# displaying file content
+cat students.csv
+```
+
+##### Question 3
+
+```{bash}
+# displaying the first five lines
+head -5 students.csv
+```
+
+##### Question 4
+
+```{bash}
+# displaying the last five lines
+tail -3 students.csv
+head -n -3 input.tx
+```
+
+##### Question 5
+
+```{bash}
+# number of lines 
+wc -l students.csv
+```
+
+##### Question 6
+
+```{bash}
+# students taking Math
+grep -n Math students.csv
+```
+
+##### Question 7
+
+```{bash}
+# female students
+grep -n ,F, students.csv
+```
+
+##### Question 8
+
+```{bash}
+# sort by age 
+sort -t, -k3,3 students.csv
+```
+
+##### Question 9
+
+```{bash}
+# unique subjects 
+cut -d',' -f6 students.csv | sort | head -10 | uniq
+```
+
+##### Question 10
+
+```{bash}
+rm # average student age 
+tail -10 students.csv | awk -F"," '{sum += $3} END {avg = sum / NR; print avg}'
+```
+
+##### Question 11
+
+```{bash}
+# replace mathematics with Math
+sed 's/Math/Mathematics/g' students.csv
+```
