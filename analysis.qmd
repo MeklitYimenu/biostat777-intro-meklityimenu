@@ -375,6 +375,9 @@ Again, the accuracy of the model is similar to that of the previous two models.
 All three models have similarly high accuracy, so any of them can be selected as our prediction method.
 :::
 
-### Model Selection
 
 ## Conclusion
+
+Stroke is a leading cause of death, and therefore, a predictive model that can be effectively implemented by healthcare practitioners would be highly beneficial. In this analysis, various patient characteristics were used to construct such a model. Three types of predictive models, each with an accuracy of over 95%, were developed. Although the accuracy of these models was very high, the dataset was imbalanced, containing significantly more patients who did not have a stroke. As such, the results may be affected by this imbalance. Furthermore, adding more relevant patient characteristics and increasing the sample size would likely improve the model. Nonetheless, the models outlined here can serve as a foundation for developing a more robust predictive model.
+
+[Function List: `select()`,`drop_na()`,`count()`,`filter()`,`mutate()`,` mutate_if()`, `spread()`, `geom_bar()`, `geom_histogram()`, `geom_boxplot()`, `facet_wrap()`]{.aside}
